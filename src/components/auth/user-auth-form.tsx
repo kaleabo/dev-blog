@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
