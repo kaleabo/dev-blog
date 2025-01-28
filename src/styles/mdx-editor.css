@@ -1,0 +1,149 @@
+/* MDX Editor Styles */
+.mdxeditor {
+  border: none !important;
+  border-radius: 0.5rem;
+  background-color: transparent !important;
+}
+
+.mdxeditor .prose {
+  max-width: none;
+}
+
+.mdxeditor .toolbar {
+  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.mdxeditor .content-editable-wrapper {
+  background-color: transparent;
+  min-height: 500px;
+}
+
+.mdxeditor [data-lexical-editor] {
+  padding: 1rem;
+}
+
+/* Dark mode styles */
+.dark .mdxeditor {
+  color: hsl(var(--foreground));
+}
+
+.dark .mdxeditor .toolbar {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+.dark .mdxeditor button {
+  color: hsl(var(--foreground));
+}
+
+.dark .mdxeditor button:hover {
+  background-color: hsl(var(--accent));
+}
+
+.dark .mdxeditor [data-lexical-editor] {
+  background-color: transparent;
+}
+
+/* Toolbar button styles */
+.mdxeditor button {
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  margin: 0.25rem;
+}
+
+.mdxeditor button:hover {
+  background-color: hsl(var(--accent));
+}
+
+.mdxeditor button.active {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Dialog styles */
+.mdxeditor .dialog {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: hsl(var(--foreground));
+}
+
+.mdxeditor .dialog input,
+.mdxeditor .dialog select {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  color: hsl(var(--foreground));
+}
+
+/* Table styles */
+.mdxeditor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.mdxeditor th,
+.mdxeditor td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem;
+}
+
+.mdxeditor th {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Code block styles */
+.mdxeditor pre {
+  background-color: hsl(var(--accent));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.mdxeditor code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* List styles */
+.mdxeditor ul,
+.mdxeditor ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.mdxeditor li {
+  margin: 0.25rem 0;
+}
+
+/* Blockquote styles */
+.mdxeditor blockquote {
+  border-left: 4px solid hsl(var(--accent));
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Image styles */
+.mdxeditor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* Link styles */
+.mdxeditor a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+
+.mdxeditor a:hover {
+  color: hsl(var(--primary));
+  opacity: 0.8;
+} 
