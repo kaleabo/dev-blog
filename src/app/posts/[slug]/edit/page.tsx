@@ -17,7 +17,11 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
   }
 
   try {
-    const post = await api.post.getBySlug.query({ slug: params.slug });
+    const post = await api.post.getBySlug({ slug: params.slug });
+
+    if (!post) {
+      notFound();
+    }
 
     if (post.authorId !== session.user.id) {
       redirect("/dashboard");
