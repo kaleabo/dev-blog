@@ -12,6 +12,8 @@ const createPostSchema = z.object({
   excerpt: z.string().max(300, "Excerpt must be less than 300 characters").optional(),
   content: z.string().min(1, "Content is required"),
   published: z.boolean().default(false),
+  categoryId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const postRouter = createTRPCRouter({
@@ -52,6 +54,14 @@ export const postRouter = createTRPCRouter({
           published: input.published,
           authorId: ctx.session.user.id,
           publishedAt: input.published ? new Date() : null,
+          categoryId: input.categoryId,
+          tags: input.tags ? {
+            connect: input.tags.map((id) => ({ id })),
+          } : undefined,
+        },
+        include: {
+          category: true,
+          tags: true,
         },
       });
     }),
@@ -114,6 +124,8 @@ export const postRouter = createTRPCRouter({
               image: true,
             },
           },
+          category: true,
+          tags: true,
         },
       });
 
@@ -137,6 +149,9 @@ export const postRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const post = await ctx.db.post.findUnique({
         where: { id: input.id },
+        include: {
+          tags: true,
+        },
       });
 
       if (!post) {
@@ -183,6 +198,14 @@ export const postRouter = createTRPCRouter({
           excerpt: input.data.excerpt,
           published: input.data.published,
           publishedAt: input.data.published && !post.publishedAt ? new Date() : post.publishedAt,
+          categoryId: input.data.categoryId,
+          tags: input.data.tags ? {
+            set: input.data.tags.map((id) => ({ id })),
+          } : undefined,
+        },
+        include: {
+          category: true,
+          tags: true,
         },
       });
     }),
