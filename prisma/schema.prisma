@@ -14,33 +14,176 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// User Profile and Authentication
+model User {
+    id            String    @id @default(cuid())
+    name          String?
+    email         String?   @unique
+    emailVerified DateTime?
+    image         String?
+    bio           String?   @db.Text
+    role          UserRole  @default(USER)
+    language      Language  @default(ENGLISH)
+    githubUrl     String?
+    linkedinUrl   String?
+    twitterUrl    String?
+    website       String?
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+    // Relations
+    accounts      Account[]
+    sessions      Session[]
+    posts         Post[]
+    comments      Comment[]
+    likes         Like[]
+    views         View[]
 
-    @@index([name])
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
 }
 
-// Necessary for Next auth
+enum UserRole {
+    USER
+    ADMIN
+    MODERATOR
+}
+
+enum Language {
+    ENGLISH
+    AMHARIC
+    AFAAN_OROMOO
+}
+
+// Blog Post
+model Post {
+    id          String     @id @default(cuid())
+    title       String
+    slug        String     @unique
+    content     String     @db.Text
+    excerpt     String?    @db.Text
+    published   Boolean    @default(false)
+    featured    Boolean    @default(false)
+    
+    // SEO and Metadata
+    metaTitle       String?
+    metaDescription String?    @db.Text
+    ogImage         String?
+
+    // Relations
+    author      User        @relation(fields: [authorId], references: [id])
+    authorId    String
+    categories  CategoriesOnPosts[]
+    tags        TagsOnPosts[]
+    comments    Comment[]
+    likes       Like[]
+    views       View[]
+
+    // Timestamps
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    publishedAt DateTime?
+
+    @@index([slug])
+    @@index([authorId])
+}
+
+// Categories
+model Category {
+    id          String     @id @default(cuid())
+    name        String     @unique
+    slug        String     @unique
+    description String?    @db.Text
+    posts       CategoriesOnPosts[]
+
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+}
+
+model CategoriesOnPosts {
+    post       Post     @relation(fields: [postId], references: [id])
+    postId     String
+    category   Category @relation(fields: [categoryId], references: [id])
+    categoryId String
+
+    @@id([postId, categoryId])
+}
+
+// Tags
+model Tag {
+    id          String     @id @default(cuid())
+    name        String     @unique
+    slug        String     @unique
+    posts       TagsOnPosts[]
+
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+}
+
+model TagsOnPosts {
+    post       Post     @relation(fields: [postId], references: [id])
+    postId     String
+    tag        Tag      @relation(fields: [tagId], references: [id])
+    tagId      String
+
+    @@id([postId, tagId])
+}
+
+// Comments
+model Comment {
+    id        String    @id @default(cuid())
+    content   String    @db.Text
+    post      Post      @relation(fields: [postId], references: [id])
+    postId    String
+    author    User      @relation(fields: [authorId], references: [id])
+    authorId  String
+    parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+    parentId  String?
+    replies   Comment[] @relation("CommentToComment")
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    @@index([postId])
+    @@index([authorId])
+}
+
+// Engagement
+model Like {
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    post      Post     @relation(fields: [postId], references: [id])
+    postId    String
+    createdAt DateTime @default(now())
+
+    @@id([userId, postId])
+}
+
+model View {
+    id        String   @id @default(cuid())
+    user      User?    @relation(fields: [userId], references: [id])
+    userId    String?
+    post      Post     @relation(fields: [postId], references: [id])
+    postId    String
+    createdAt DateTime @default(now())
+
+    @@index([postId])
+    @@index([userId])
+}
+
+// NextAuth Models
 model Account {
     id                       String  @id @default(cuid())
     userId                   String
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    refresh_token           String?  @db.Text
+    access_token            String?  @db.Text
+    expires_at              Int?
+    token_type              String?
+    scope                   String?
+    id_token                String?  @db.Text
+    session_state           String?
+    user                    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
 
     @@unique([provider, providerAccountId])
@@ -52,17 +195,6 @@ model Session {
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
 }
 
 model VerificationToken {
