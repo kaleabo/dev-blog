@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { type Post } from "@prisma/client";
 
 import {
   createTRPCRouter,
@@ -55,37 +56,41 @@ export const postRouter = createTRPCRouter({
           authorId: ctx.session.user.id,
           publishedAt: input.published ? new Date() : null,
           categoryId: input.categoryId,
-          tags: input.tags ? {
-            connect: input.tags.map((id) => ({ id })),
-          } : undefined,
-        },
-        include: {
-          category: true,
-          tags: true,
+          tags: input.tags
+            ? {
+                connect: input.tags.map((id) => ({ id })),
+              }
+            : undefined,
         },
       });
     }),
 
   getUserPosts: protectedProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.db.post.findMany({
+    return ctx.db.post.findMany({
       where: {
         authorId: ctx.session.user.id,
       },
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        category: true,
+        tags: true,
+      },
     });
-
-    return posts;
   }),
 
   getLatest: protectedProcedure.query(async ({ ctx }) => {
     const post = await ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
       where: { authorId: ctx.session.user.id },
+      include: {
+        category: true,
+        tags: true,
+      },
     });
 
-    return post ?? null;
+    return post;
   }),
 
   getById: protectedProcedure
@@ -93,6 +98,10 @@ export const postRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const post = await ctx.db.post.findUnique({
         where: { id: input.id },
+        include: {
+          category: true,
+          tags: true,
+        },
       });
 
       if (!post) {
@@ -199,9 +208,11 @@ export const postRouter = createTRPCRouter({
           published: input.data.published,
           publishedAt: input.data.published && !post.publishedAt ? new Date() : post.publishedAt,
           categoryId: input.data.categoryId,
-          tags: input.data.tags ? {
-            set: input.data.tags.map((id) => ({ id })),
-          } : undefined,
+          tags: input.data.tags
+            ? {
+                set: input.data.tags.map((id) => ({ id })),
+              }
+            : undefined,
         },
         include: {
           category: true,
