@@ -1,12 +1,28 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { type Post } from "@prisma/client";
+import { type Post, type Prisma } from "@prisma/client";
 
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+
+const defaultPostSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  content: true,
+  excerpt: true,
+  published: true,
+  authorId: true,
+  categoryId: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+  category: true,
+  tags: true,
+} satisfies Prisma.PostSelect;
 
 const createPostSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -56,12 +72,11 @@ export const postRouter = createTRPCRouter({
           authorId: ctx.session.user.id,
           publishedAt: input.published ? new Date() : null,
           categoryId: input.categoryId,
-          tags: input.tags
-            ? {
-                connect: input.tags.map((id) => ({ id })),
-              }
-            : undefined,
+          tags: {
+            connect: input.tags?.map((id) => ({ id })) ?? [],
+          },
         },
+        select: defaultPostSelect,
       });
     }),
 
@@ -73,24 +88,16 @@ export const postRouter = createTRPCRouter({
       orderBy: {
         createdAt: "desc",
       },
-      include: {
-        category: true,
-        tags: true,
-      },
+      select: defaultPostSelect,
     });
   }),
 
   getLatest: protectedProcedure.query(async ({ ctx }) => {
-    const post = await ctx.db.post.findFirst({
+    return ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
       where: { authorId: ctx.session.user.id },
-      include: {
-        category: true,
-        tags: true,
-      },
+      select: defaultPostSelect,
     });
-
-    return post;
   }),
 
   getById: protectedProcedure
@@ -98,10 +105,7 @@ export const postRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const post = await ctx.db.post.findUnique({
         where: { id: input.id },
-        include: {
-          category: true,
-          tags: true,
-        },
+        select: defaultPostSelect,
       });
 
       if (!post) {
@@ -126,15 +130,14 @@ export const postRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const post = await ctx.db.post.findUnique({
         where: { slug: input.slug },
-        include: {
+        select: {
+          ...defaultPostSelect,
           author: {
             select: {
               name: true,
               image: true,
             },
           },
-          category: true,
-          tags: true,
         },
       });
 
@@ -158,9 +161,7 @@ export const postRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const post = await ctx.db.post.findUnique({
         where: { id: input.id },
-        include: {
-          tags: true,
-        },
+        select: defaultPostSelect,
       });
 
       if (!post) {
@@ -208,16 +209,11 @@ export const postRouter = createTRPCRouter({
           published: input.data.published,
           publishedAt: input.data.published && !post.publishedAt ? new Date() : post.publishedAt,
           categoryId: input.data.categoryId,
-          tags: input.data.tags
-            ? {
-                set: input.data.tags.map((id) => ({ id })),
-              }
-            : undefined,
+          tags: {
+            set: input.data.tags?.map((id) => ({ id })) ?? [],
+          },
         },
-        include: {
-          category: true,
-          tags: true,
-        },
+        select: defaultPostSelect,
       });
     }),
 

@@ -43,12 +43,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { MarkdownPreview } from "./markdown-preview";
+import { CategoryTagSelect } from "./category-tag-select";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   excerpt: z.string().max(300, "Excerpt must be less than 300 characters").optional(),
   content: z.string().min(1, "Content is required"),
   published: z.boolean().default(false),
+  categoryId: z.string().optional(),
+  tags: z.array(z.string()).default([]),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -64,6 +67,8 @@ export function CreatePostForm() {
       excerpt: "",
       content: "",
       published: false,
+      categoryId: undefined,
+      tags: [],
     },
   });
 
@@ -180,6 +185,30 @@ export function CreatePostForm() {
             </FormItem>
           )}
         />
+
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category & Tags</FormLabel>
+                <FormControl>
+                  <CategoryTagSelect
+                    selectedCategoryId={field.value}
+                    selectedTagIds={form.watch("tags")}
+                    onCategoryChange={field.onChange}
+                    onTagsChange={(tags) => form.setValue("tags", tags)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Categorize your post and add relevant tags.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
