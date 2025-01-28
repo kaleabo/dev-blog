@@ -55,12 +55,12 @@ enum Language {
 
 // Blog Post
 model Post {
-    id          String     @id @default(cuid())
+    id          String    @id @default(cuid())
     title       String
-    slug        String     @unique
-    content     String     @db.Text
-    excerpt     String?    @db.Text
-    published   Boolean    @default(false)
+    slug        String    @unique
+    content     String    @db.Text
+    excerpt     String?   @db.Text
+    published   Boolean   @default(false)
     featured    Boolean    @default(false)
     
     // SEO and Metadata
@@ -69,10 +69,11 @@ model Post {
     ogImage         String?
 
     // Relations
-    author      User        @relation(fields: [authorId], references: [id])
+    author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
     authorId    String
-    categories  CategoriesOnPosts[]
-    tags        TagsOnPosts[]
+    category    Category? @relation(fields: [categoryId], references: [id])
+    categoryId  String?
+    tags        Tag[]     @relation("PostToTag")
     comments    Comment[]
     likes       Like[]
     views       View[]
@@ -84,47 +85,29 @@ model Post {
 
     @@index([slug])
     @@index([authorId])
+    @@index([categoryId])
 }
 
 // Categories
 model Category {
-    id          String     @id @default(cuid())
-    name        String     @unique
-    slug        String     @unique
-    description String?    @db.Text
-    posts       CategoriesOnPosts[]
-
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
-}
-
-model CategoriesOnPosts {
-    post       Post     @relation(fields: [postId], references: [id])
-    postId     String
-    category   Category @relation(fields: [categoryId], references: [id])
-    categoryId String
-
-    @@id([postId, categoryId])
+    id          String   @id @default(cuid())
+    name        String   @unique
+    slug        String   @unique
+    description String?  @db.Text
+    posts       Post[]
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 }
 
 // Tags
 model Tag {
-    id          String     @id @default(cuid())
-    name        String     @unique
-    slug        String     @unique
-    posts       TagsOnPosts[]
-
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
-}
-
-model TagsOnPosts {
-    post       Post     @relation(fields: [postId], references: [id])
-    postId     String
-    tag        Tag      @relation(fields: [tagId], references: [id])
-    tagId      String
-
-    @@id([postId, tagId])
+    id          String   @id @default(cuid())
+    name        String   @unique
+    slug        String   @unique
+    description String?  @db.Text
+    posts       Post[]   @relation("PostToTag")
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 }
 
 // Comments
