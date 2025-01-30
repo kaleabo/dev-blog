@@ -16,7 +16,6 @@ const defaultPostSelect = {
   excerpt: true,
   published: true,
   authorId: true,
-  categoryId: true,
   createdAt: true,
   updatedAt: true,
   publishedAt: true,
@@ -33,14 +32,8 @@ const defaultPostSelect = {
       slug: true,
     },
   },
-  tags: {
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-    },
-  },
-} satisfies Prisma.PostSelect;
+  tags: true,
+} as const;
 
 const createPostSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -80,6 +73,8 @@ export const postRouter = createTRPCRouter({
         });
       }
 
+      const tagConnections = input.tags?.map((id) => ({ id })) ?? [];
+
       return ctx.db.post.create({
         data: {
           title: input.title,
@@ -90,13 +85,9 @@ export const postRouter = createTRPCRouter({
           authorId: ctx.session.user.id,
           publishedAt: input.published ? new Date() : null,
           categoryId: input.categoryId,
-          tags: input.tags?.length
-            ? {
-                connect: input.tags.map((id) => ({
-                  id,
-                })),
-              }
-            : undefined,
+          tags: {
+            connect: tagConnections,
+          },
         },
         select: defaultPostSelect,
       });
@@ -221,6 +212,8 @@ export const postRouter = createTRPCRouter({
         }
       }
 
+      const tagConnections = input.data.tags?.map((id) => ({ id })) ?? [];
+
       return ctx.db.post.update({
         where: { id: input.id },
         data: {
@@ -232,9 +225,7 @@ export const postRouter = createTRPCRouter({
           publishedAt: input.data.published && !post.publishedAt ? new Date() : post.publishedAt,
           categoryId: input.data.categoryId,
           tags: {
-            set: input.data.tags?.map((id) => ({
-              id,
-            })) ?? [],
+            set: tagConnections,
           },
         },
         select: defaultPostSelect,
