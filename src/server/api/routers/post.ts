@@ -20,8 +20,26 @@ const defaultPostSelect = {
   createdAt: true,
   updatedAt: true,
   publishedAt: true,
-  category: true,
-  tags: true,
+  author: {
+    select: {
+      name: true,
+      image: true,
+    },
+  },
+  category: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
+  tags: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
 } satisfies Prisma.PostSelect;
 
 const createPostSchema = z.object({
@@ -72,9 +90,13 @@ export const postRouter = createTRPCRouter({
           authorId: ctx.session.user.id,
           publishedAt: input.published ? new Date() : null,
           categoryId: input.categoryId,
-          tags: {
-            connect: input.tags?.map((id) => ({ id })) ?? [],
-          },
+          tags: input.tags?.length
+            ? {
+                connect: input.tags.map((id) => ({
+                  id,
+                })),
+              }
+            : undefined,
         },
         select: defaultPostSelect,
       });
@@ -210,7 +232,9 @@ export const postRouter = createTRPCRouter({
           publishedAt: input.data.published && !post.publishedAt ? new Date() : post.publishedAt,
           categoryId: input.data.categoryId,
           tags: {
-            set: input.data.tags?.map((id) => ({ id })) ?? [],
+            set: input.data.tags?.map((id) => ({
+              id,
+            })) ?? [],
           },
         },
         select: defaultPostSelect,
