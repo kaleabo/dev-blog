@@ -46,6 +46,13 @@ export const categoryRouter = createTRPCRouter({
       orderBy: {
         name: "asc",
       },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+          },
+        },
+      },
     });
   }),
 

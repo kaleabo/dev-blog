@@ -15,7 +15,12 @@ const defaultPostSelect = {
   content: true,
   excerpt: true,
   published: true,
+  featured: true,
   authorId: true,
+  categoryId: true,
+  metaTitle: true,
+  metaDescription: true,
+  ogImage: true,
   createdAt: true,
   updatedAt: true,
   publishedAt: true,
@@ -32,7 +37,13 @@ const defaultPostSelect = {
       slug: true,
     },
   },
-  tags: true,
+  tags: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
 } as const;
 
 const createPostSchema = z.object({
@@ -262,5 +273,32 @@ export const postRouter = createTRPCRouter({
 
   getSecretMessage: protectedProcedure.query(() => {
     return "you can now see this secret message!";
+  }),
+
+  getFeatured: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db.post.findMany({
+      where: {
+        published: true,
+        featured: true,
+      },
+      orderBy: {
+        publishedAt: "desc",
+      },
+      take: 3,
+      select: defaultPostSelect,
+    });
+  }),
+
+  getLatestPublished: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db.post.findMany({
+      where: {
+        published: true,
+      },
+      orderBy: {
+        publishedAt: "desc",
+      },
+      take: 6,
+      select: defaultPostSelect,
+    });
   }),
 });
