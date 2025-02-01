@@ -14,7 +14,7 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
     EMAIL_SERVER_HOST: z.string(),
-    EMAIL_SERVER_PORT: z.number(),
+    EMAIL_SERVER_PORT: z.union([z.number(), z.string()]),
     EMAIL_SERVER_USER: z.string(),
     EMAIL_SERVER_PASSWORD: z.string(),
     EMAIL_FROM: z.string().email(),
@@ -30,7 +30,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // NEXT_PUBLIC_BAR: z.string(),
   },
 
   /**
@@ -38,16 +38,16 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    NODE_ENV: process.env.NODE_ENV,
     AUTH_SECRET: process.env.AUTH_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     EMAIL_SERVER_HOST: process.env.EMAIL_SERVER_HOST,
-    EMAIL_SERVER_PORT: process.env.EMAIL_SERVER_PORT ? parseInt(process.env.EMAIL_SERVER_PORT) : undefined,
+    EMAIL_SERVER_PORT: process.env.EMAIL_SERVER_PORT,
     EMAIL_SERVER_USER: process.env.EMAIL_SERVER_USER,
     EMAIL_SERVER_PASSWORD: process.env.EMAIL_SERVER_PASSWORD,
     EMAIL_FROM: process.env.EMAIL_FROM,
-    DATABASE_URL: process.env.DATABASE_URL,
-    NODE_ENV: process.env.NODE_ENV,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -1,5 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { type DefaultSession } from "next-auth";
+import type { AuthConfig } from "@auth/core";
 import DiscordProvider from "next-auth/providers/discord";
 
 import { db } from "@/server/db";
@@ -10,19 +11,16 @@ import { db } from "@/server/db";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
+export type { Session } from "next-auth"
+
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
+      role: "USER" | "ADMIN" | "MODERATOR";
+      language: "ENGLISH" | "AMHARIC" | "AFAAN_OROMOO";
+    } & DefaultSession["user"]
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
 /**
@@ -31,26 +29,22 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  providers: [
-    DiscordProvider,
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
-  ],
+  providers: [],
   adapter: PrismaAdapter(db),
   callbacks: {
-    session: ({ session, user }) => ({
+    session: ({ session, user }: { session: DefaultSession; user: any }) => ({
       ...session,
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
+        language: user.language,
       },
     }),
   },
-} satisfies NextAuthConfig;
+  pages: {
+    signIn: "/auth/signin",
+    verifyRequest: "/auth/verify-request", 
+    error: "/auth/error",
+  },
+} satisfies AuthConfig;
